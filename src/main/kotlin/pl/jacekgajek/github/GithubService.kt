@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service
 @Service
 class GithubService(private val client: GithubClient) {
     suspend fun getRepositories(userName: String): Flow<RepositoryDto> {
+        // Non-blocking call to fetch user details and use returned URLs
         val owner = client.getUserInfo(userName)
         return client.getRepositories(owner).asFlow()
             .filterNot { it.fork }

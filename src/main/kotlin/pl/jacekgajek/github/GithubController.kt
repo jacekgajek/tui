@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/api/v1/repos", produces = [MediaType.APPLICATION_JSON_VALUE])
 class GithubController(val githubService: GithubService) {
+
+    // Leveraging Spring Boot support for coroutines for reactive/non-blocking API calls.
     @GetMapping("/{user}")
     suspend fun getRepositories(@PathVariable user: String): Flow<GithubService.RepositoryDto> {
         return githubService.getRepositories(user)
@@ -16,11 +18,11 @@ class GithubController(val githubService: GithubService) {
     // Note to reviewer: This requirement doesn't make sense because
     // if client expects XML then it cannot understand this JSON with error message
     //
-    // This the reason why NOT_ACCEPTABLE should return empty content, because
+    // This is the reason why NOT_ACCEPTABLE returns no content, because
     // we cannot produce a response which can be understood by the client
     //
-    // This can be also handled by extending DefaultHandlerExceptionResolver, but it would
-    // result a lot of boilerplate, so I'll leave as it is.
+    // (This can be also handled by extending DefaultHandlerExceptionResolver, but it would
+    // result in a lot of boilerplate, so I'll leave as it is.)
     @GetMapping("/{user}", produces = [MediaType.APPLICATION_XML_VALUE])
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     suspend fun getRepositoriesXml(@PathVariable user: String): String {
