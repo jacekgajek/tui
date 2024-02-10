@@ -19,7 +19,8 @@ class GithubController(val githubService: GithubService) {
     // This the reason why NOT_ACCEPTABLE should return empty content, because
     // we cannot produce a response which can be understood by the client
     //
-    // and THIS is the reason why this code is ugly.
+    // This can be also handled by extending DefaultHandlerExceptionResolver, but it would
+    // result a lot of boilerplate, so I'll leave as it is.
     @GetMapping("/{user}", produces = [MediaType.APPLICATION_XML_VALUE])
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     suspend fun getRepositoriesXml(@PathVariable user: String): String {
@@ -30,6 +31,12 @@ class GithubController(val githubService: GithubService) {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     fun handleNotFound(ex: GithubClient.UserNotFoundException): ErrorBodyDto {
         return ErrorBodyDto(HttpStatus.NOT_FOUND.value(), ex.message)
+    }
+
+    @ExceptionHandler(GithubClient.UnexpectedGitHubResponseException::class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    fun handleUnexpected(ex: GithubClient.UnexpectedGitHubResponseException): ErrorBodyDto {
+        return ErrorBodyDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.message)
     }
 }
 

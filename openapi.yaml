@@ -1,0 +1,44 @@
+openapi: 3.0.1
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+  - url: http://localhost:8081
+    description: Generated server url
+paths:
+  /api/v1/repos/{user}:
+    get:
+      tags:
+        - github-controller
+      operationId: getRepositoriesXml_1
+      parameters:
+        - name: user
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorBodyDto'
+        '406':
+          description: Not Acceptable
+          content:
+            application/xml:
+              schema:
+                type: string
+components:
+  schemas:
+    ErrorBodyDto:
+      required:
+        - status
+      type: object
+      properties:
+        status:
+          type: integer
+          format: int32
+        message:
+          type: string

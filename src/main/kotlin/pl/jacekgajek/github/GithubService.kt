@@ -10,20 +10,14 @@ import org.springframework.stereotype.Service
 class GithubService(private val client: GithubClient) {
     suspend fun getRepositories(userName: String): Flow<RepositoryDto> {
         val owner = client.getUserInfo(userName)
-        val repos = client.getRepositories(owner).asFlow()
+        return client.getRepositories(owner).asFlow()
             .filterNot { it.fork }
             .map { repo ->
                 val branches = client.getBranches(repo).map { BranchDto(it.name, it.commit.sha) }
-                RepositoryDto(
-                    owner = repo.owner.login,
-                    name = repo.name,
-                    branches = branches
-                )
+                RepositoryDto(repo.owner.login, repo.name, branches)
             }
-        return repos
     }
 
     data class RepositoryDto(val owner: String, val name: String, val branches: List<BranchDto>)
     data class BranchDto(val name: String, val lastCommitSha: String?)
 }
-

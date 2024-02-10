@@ -77,13 +77,13 @@ class GithubControllerTest {
         // GIVEN
         val userDto = GithubClient.UserInfoDto("/repos")
         wheneverBlocking { githubClient.getUserInfo(USER_NAME) }.thenReturn(userDto)
-        val repo1 = GithubClient.RepoDto("repo2", "/branches", true, GithubClient.RepoDto.RepoOwner("somebody"))
-        val repo2 = GithubClient.RepoDto("repo1", "/branches", false, GithubClient.RepoDto.RepoOwner(USER_NAME))
+        val repo1 = GithubClient.RepoDto("repo2", "/branches", true, GithubClient.RepoOwner("somebody"))
+        val repo2 = GithubClient.RepoDto("repo1", "/branches", false, GithubClient.RepoOwner(USER_NAME))
         val reposDto = listOf(repo1, repo2)
         wheneverBlocking { githubClient.getRepositories(userDto) }.thenReturn(reposDto)
         val branches = listOf(
-            GithubClient.BranchDto("main", GithubClient.BranchDto.CommitDto("123")),
-            GithubClient.BranchDto("feature", GithubClient.BranchDto.CommitDto("234")),
+            GithubClient.BranchDto("main", GithubClient.CommitDto("123")),
+            GithubClient.BranchDto("feature", GithubClient.CommitDto("234")),
         )
         wheneverBlocking { githubClient.getBranches(repo2) }.thenReturn(branches)
 
