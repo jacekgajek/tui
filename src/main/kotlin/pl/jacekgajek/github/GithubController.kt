@@ -2,19 +2,28 @@ package pl.jacekgajek.github
 
 import kotlinx.coroutines.flow.Flow
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.http.MediaType
+import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/api/v1/repos")
+@RequestMapping("/api/v1/repos", produces = [MediaType.APPLICATION_JSON_VALUE])
 class GithubController(val githubService: GithubService) {
     @GetMapping("/{user}")
     suspend fun getRepositories(@PathVariable user: String): Flow<GithubService.RepositoryDto> {
         return githubService.getRepositories(user)
+    }
+
+    // Note to reviewer: This requirement doesn't make sense because
+    // if client expects XML then it cannot understand this JSON with error message
+    //
+    // This the reason why NOT_ACCEPTABLE should return empty content, because
+    // we cannot produce a response which can be understood by the client
+    //
+    // and THIS is the reason why this code is ugly.
+    @GetMapping("/{user}", produces = [MediaType.APPLICATION_XML_VALUE])
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    suspend fun getRepositoriesXml(@PathVariable user: String): String {
+        return """{ "status": 406, "message": "XML not supported" }"""
     }
 
     @ExceptionHandler(GithubClient.UserNotFoundException::class)
@@ -24,4 +33,4 @@ class GithubController(val githubService: GithubService) {
     }
 }
 
-data class ErrorBodyDto(val status: Int, val message: String?)
+data class ErrorBodyDto(var status: Int, var message: String?)

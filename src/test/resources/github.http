@@ -23,6 +23,10 @@ GET https://api.github.com/repos/jacekgajek/ads/branches
 
 ###
 GET http://localhost:8081/api/v1/repos/jacekgajek
+Accept: application/xml
+
+###
+GET http://localhost:8081/api/v1/repos/jacekgajek
 Accept: application/json
 ###
 

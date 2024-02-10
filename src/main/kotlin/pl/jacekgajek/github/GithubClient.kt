@@ -49,7 +49,7 @@ class GithubClient(private val client: WebClient) {
     }
 
     data class RepoDto(
-        val id: Long,
+        val name: String,
         @JsonProperty("branches_url")
         val branchesUrl: String,
         val fork: Boolean,
@@ -59,12 +59,11 @@ class GithubClient(private val client: WebClient) {
     }
 
     data class UserInfoDto(
-        val id: Long,
         @JsonProperty("repos_url")
         val reposUrl: String
     )
 
-    class UserNotFoundException(user: String) : Exception("User $user not found")
+    class UserNotFoundException(user: String) : RuntimeException("User $user not found")
     class UnexpectedGitHubResponseException(status: HttpStatusCode) :
-        Exception("Github responded with ${status.value()} status.")
+        RuntimeException("Github responded with ${status.value()} status.")
 }
