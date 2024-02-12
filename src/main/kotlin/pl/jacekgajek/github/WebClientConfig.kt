@@ -7,7 +7,6 @@ import org.springframework.web.reactive.function.client.WebClient
 
 @Configuration
 class WebClientConfig(@Value("\${jacekgajek.github-api-url}") private val githubApi: String) {
-
     @Bean
     fun getGithubWebClient(): WebClient =
         WebClient.builder()

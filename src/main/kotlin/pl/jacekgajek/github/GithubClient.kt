@@ -5,11 +5,22 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec
-import org.springframework.web.reactive.function.client.WebClient.ResponseSpec
 import org.springframework.web.reactive.function.client.awaitBody
+import pl.jacekgajek.github.GitHubApiUtils.handleUnexpectedGithubResponse
+import pl.jacekgajek.github.GitHubApiUtils.retrieveAndAwait
+import pl.jacekgajek.github.GitHubApiUtils.stripSuffixInBrackets
 import reactor.core.publisher.Mono
 
+/**
+ * Note about chosen implementation:
+ *
+ * I decided to use the URLs which are returned by github in the /users/ request, so this
+ * client must be dynamic.
+ *
+ * Another solution would be to use a Spring's declarative client, but that'd
+ * require hard-coding URLs. It's OK since the github API is versioned. I'd probably
+ * bring this up on a daily for a short discussion which way we should go.
+ */
 @Service
 class GithubClient(private val client: WebClient) {
     suspend fun getUserInfo(user: String): UserInfoDto =
@@ -46,27 +57,4 @@ class GithubClient(private val client: WebClient) {
     class UserNotFoundException(user: String) : RuntimeException("User $user not found")
     class UnexpectedGitHubResponseException(status: HttpStatusCode) :
         RuntimeException("Github responded with ${status.value()} status.")
-
-    private suspend inline fun <reified T> RequestHeadersSpec<*>.retrieveAndAwait(): T {
-        return this
-            .retrieve()
-            .handleUnexpectedGithubResponse()
-            .awaitBody()
-    }
-
-    fun ResponseSpec.handleUnexpectedGithubResponse(): ResponseSpec {
-        return this.onStatus({ it.isError }) { Mono.error(UnexpectedGitHubResponseException(it.statusCode())) }
-    }
-
-    /**
-     * Returns a new string by removing the substring enclosed in curly brackets from the end of this string.
-     *
-     * @return A new string with the substring enclosed in curly brackets removed from the end.
-     */
-    private val String.stripSuffixInBrackets: String
-        get() = this.takeIf { endsWith("}") }
-            ?.let { lastIndexOf('{') }
-            ?.takeIf { it >= 0 }
-            ?.let { substring(0, it) }
-            ?: this
 }

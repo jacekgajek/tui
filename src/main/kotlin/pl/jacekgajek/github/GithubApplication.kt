@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
+// Required by Graal
 @RegisterReflectionForBinding(
     GithubService.RepositoryDto::class, GithubClient.BranchDto::class,
     GithubService.BranchDto::class,

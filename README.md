@@ -5,13 +5,19 @@
 The service exposes a GET endpoint `/api/v1/repos/{username}` which returns
 all public repositories of a github user which are not forks.
 
+## Architecture
+A Spring Boot reactive was chosen as a framework. Outgoing requests are performed with `org.springframework.web.reactive.function.client.WebClient` wrapped in suspend functions. Incoming requests are handled by kotlin coroutines, which are supported by Spring Boot.
+
+## Sample requests
+Sample requests for manual testing can be found in the src/test/resources/github.http file
+
 ## Running
 
 ### Run a docker image
 
 ```
 docker build -t pl.jacekgajek/tui .
-docker run -p8081:8081 pl.jacekgajek/tui
+docker run -p8080:8080 pl.jacekgajek/tui
 ```
 
 ### Run a native executable
@@ -37,5 +43,5 @@ java -jar build/libs/github-0.0.1-SNAPSHOT.jar
 
 ## API documentation
 
-Run the app and go to http://localhost:8081/swagger-ui/index.html for Swagger UI or http://localhost:8081/v3/api-docs 
+Run the app and go to http://localhost:8080/swagger-ui/index.html for Swagger UI or http://localhost:8080/v3/api-docs 
 for up-to-date openapi specs. Copy of documentation in this file: [openapi.yaml](openapi.yaml)

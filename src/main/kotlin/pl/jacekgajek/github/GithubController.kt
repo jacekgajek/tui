@@ -15,14 +15,15 @@ class GithubController(val githubService: GithubService) {
         return githubService.getRepositories(user)
     }
 
-    // Note to reviewer: This requirement doesn't make sense because
-    // if client expects XML then it cannot understand this JSON with error message
+    // Note to reviewer: if client expects XML then it cannot understand this JSON with error message
     //
     // This is the reason why NOT_ACCEPTABLE returns no content, because
     // we cannot produce a response which can be understood by the client
+    // Therefore, this requirement doesn't make sense and would be dropped in a refinement.
     //
     // (This can be also handled by extending DefaultHandlerExceptionResolver, but it would
-    // result in a lot of boilerplate, so I'll leave as it is.)
+    // result in a lot of boilerplate, so I'll leave as it is since such solution would
+    // never pass a code review anyway.)
     @GetMapping("/{user}", produces = [MediaType.APPLICATION_XML_VALUE])
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     suspend fun getRepositoriesXml(@PathVariable user: String): String {
