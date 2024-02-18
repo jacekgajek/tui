@@ -28,7 +28,7 @@ class GithubServiceTest {
             GithubClient.BranchDto("main", GithubClient.CommitDto("123")),
             GithubClient.BranchDto("feature", GithubClient.CommitDto("234")),
         )
-        wheneverBlocking { githubClient.getBranches(repo2) }.thenReturn(branchesInRepo )
+        wheneverBlocking { githubClient.getBranches(repo2) }.thenReturn(branchesInRepo)
 
         // WHEN
         val service = GithubService(githubClient)
@@ -56,7 +56,7 @@ class GithubServiceTest {
 
         // WHEN
         val service = GithubService(githubClient)
-       assertThatThrownBy { runBlocking { service.getRepositories(USER_NAME) } }
-           .isInstanceOfAny(GithubClient.UserNotFoundException::class.java)
+        assertThatThrownBy { runBlocking { service.getRepositories(USER_NAME) } }
+            .isInstanceOfAny(GithubClient.UserNotFoundException::class.java)
     }
 }

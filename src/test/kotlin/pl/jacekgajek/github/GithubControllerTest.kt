@@ -1,42 +1,18 @@
 package pl.jacekgajek.github
 
-import org.junit.jupiter.api.BeforeEach
+import com.github.tomakehurst.wiremock.client.WireMock
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.any
-import org.mockito.kotlin.doThrow
-import org.mockito.kotlin.reset
-import org.mockito.kotlin.wheneverBlocking
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
-import org.springframework.test.web.reactive.server.WebTestClient
-import java.time.Duration
+import org.springframework.http.MediaType
+
 
 private const val USER_NAME = "jacekgajek"
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureWebTestClient(timeout = "PT1H")
-class GithubControllerTest {
-
-    @Autowired
-    private lateinit var githubClient: GithubClient
-
-    @Autowired
-    private lateinit var web: WebTestClient
-
-    @BeforeEach
-    fun setup() {
-        web = web.mutate()
-            .responseTimeout(Duration.ofDays(1))
-            .build()
-        reset(githubClient)
-    }
+class GithubControllerTest : AbstractIntegrationTest() {
 
     @Test
     fun returns406ifXmlIsRequested() {
-        wheneverBlocking { githubClient.getUserInfo(any()) }.doThrow(GithubClient.UserNotFoundException(USER_NAME))
         web.get()
             .uri("/api/v1/repos/{username}", USER_NAME)
             .header(HttpHeaders.ACCEPT, "application/xml")
@@ -55,7 +31,11 @@ class GithubControllerTest {
 
     @Test
     fun returns404ifUserNotFound() {
-        wheneverBlocking { githubClient.getUserInfo(any()) }.doThrow(GithubClient.UserNotFoundException(USER_NAME))
+        server.stubFor(
+            WireMock.get(WireMock.urlMatching("http://localhost:8088/users/$USER_NAME"))
+                .willReturn(WireMock.aResponse().withStatus(404))
+        )
+
         web.get()
             .uri("/api/v1/repos/{username}", USER_NAME)
             .header(HttpHeaders.ACCEPT, "application/json")
@@ -75,17 +55,19 @@ class GithubControllerTest {
     @Test
     fun forksAreNotReturned() {
         // GIVEN
-        val userDto = GithubClient.UserInfoDto("/repos")
-        wheneverBlocking { githubClient.getUserInfo(USER_NAME) }.thenReturn(userDto)
-        val repo1 = GithubClient.RepoDto("repo2", "/branches", true, GithubClient.RepoOwner("somebody"))
-        val repo2 = GithubClient.RepoDto("repo1", "/branches", false, GithubClient.RepoOwner(USER_NAME))
+        val userDto = GithubClient.UserInfoDto("/users/jacekgajek/repos")
+        mockCall("/users/$USER_NAME", userDto)
+
+        val repo1 = GithubClient.RepoDto("repo2", "/repos/$USER_NAME/repo2/branches", true, GithubClient.RepoOwner("somebody"))
+        val repo2 = GithubClient.RepoDto("repo1", "/repos/$USER_NAME/repo1/branches", false, GithubClient.RepoOwner(USER_NAME))
         val reposDto = listOf(repo1, repo2)
-        wheneverBlocking { githubClient.getRepositories(userDto) }.thenReturn(reposDto)
+        mockCall("/users/$USER_NAME/repos", reposDto)
+
         val branches = listOf(
             GithubClient.BranchDto("main", GithubClient.CommitDto("123")),
             GithubClient.BranchDto("feature", GithubClient.CommitDto("234")),
         )
-        wheneverBlocking { githubClient.getBranches(repo2) }.thenReturn(branches)
+        mockCall("/repos/$USER_NAME/repo1/branches", branches)
 
         // THEN
         web.get()
@@ -113,5 +95,16 @@ class GithubControllerTest {
                 ]
             """.trimIndent()
             )
+    }
+
+    private fun <T> mockCall(url: String, branches: T) {
+        server.stubFor(
+            WireMock.get(WireMock.urlEqualTo(url))
+                .willReturn(
+                    WireMock.aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(branches))
+                )
+        )
     }
 }

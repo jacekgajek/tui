@@ -16,7 +16,7 @@ Sample requests for manual testing can be found in the src/test/resources/github
 ### Run a docker image
 
 ```
-docker build -t pl.jacekgajek/tui .
+./gradlew bootBuildImage
 docker run -p8080:8080 pl.jacekgajek/tui
 ```
 

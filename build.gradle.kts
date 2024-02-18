@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 
 plugins {
     id("org.springframework.boot") version "3.2.2"
@@ -34,11 +35,20 @@ dependencies {
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+    testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock")
+}
+extra["springCloudVersion"] = "2022.0.4"
+
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
+    }
 }
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs += "-Xjsr305=strict"
+        freeCompilerArgs += "-Xcontext-receivers"
         jvmTarget = "21"
     }
 }
@@ -47,3 +57,6 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
+tasks.withType<BootBuildImage> {
+    imageName = "jacekgajek/tui"
+}
