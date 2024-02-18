@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 
 plugins {
     id("org.springframework.boot") version "3.2.2"
@@ -56,3 +57,6 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
+tasks.withType<BootBuildImage> {
+    imageName = "jacekgajek/tui"
+}
